@@ -41,9 +41,8 @@ URL: https://code.google.com/p/io-2012-slides
     <article>
       <ul>
         <li>unit test Spring MVC controllers</li>
-        <li>part of spring-test since Spring 3.2
-        <li>Subtitle capitalization is title case</li>
-        <li>Titles and subtitles should never have a period at the end</li>
+        <li>part of spring-test since Spring 3.2</li>
+        <li>fast - test just one controller</li>
       </ul>
     </article>
   </slide>
@@ -77,13 +76,32 @@ public class MyController {
 
   <slide>
     <hgroup>
-      <h2>Perform test and expect</h2>
+      <h2>Setup Test</h2>
     </hgroup>
     <article class="smaller">
       <pre class="prettyprint" data-lang="java">
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = MyControllerTest.Config.class)
 @WebAppConfiguration
+public class MyControllerTest {
+
+    @Autowired WebApplicationContext wac;
+
+    <b>MockMvc mockMvc;</b>
+
+    @Before
+    public void setUp() throws Exception {
+        <b>this.mockMvc = webAppContextSetup(this.wac).build();</b>
+    }
+}
+</pre></article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Perform test and expect</h2>
+    </hgroup>
+    <article class="smaller">
+      <pre class="prettyprint" data-lang="java">
 public class MyControllerTest {
 
     @Autowired WebApplicationContext wac;
@@ -115,7 +133,7 @@ public class MyControllerTest {
     </hgroup>
     <article class="smaller">
       <pre>
-MockHttpServletRequest:
+<b>MockHttpServletRequest:</b>
          HTTP Method = GET
          Request URI = /my
           Parameters = {}
@@ -123,14 +141,14 @@ MockHttpServletRequest:
              Handler:
                 Type = MyController
               Method = public java.util.List&lt;MyEntity> MyController.list()
-  Resolved Exception:
+<b>  Resolved Exception:</b>
                 Type = null
-        ModelAndView:
+<b>        ModelAndView:</b>
            View name = null
                 View = null
                Model = null
-            FlashMap:
-MockHttpServletResponse:
+<b>            FlashMap:</b>
+<b>MockHttpServletResponse:</b>
               Status = 200
        Error message = null
              Headers = {Content-Type=[application/json;charset=UTF-8]}
@@ -145,8 +163,7 @@ MockHttpServletResponse:
 
   <slide>
     <hgroup>
-      <h2>Setup Test</h2>
-      <h3>using Spring Java config</h3>
+      <h2>Configure Beans and Mocks</h2>
     </hgroup>
     <article class="smaller">
       <pre class="prettyprint" data-lang="java">
@@ -159,24 +176,22 @@ public class MyControllerTest {
     @EnableWebMvc
     static class Config {
 
-        @Bean MyController controller(MyService service) {
-            return new MyController(service);
+        <b>@Bean</b> MyController controller(MyService service) {
+            return <b>new MyController(service)</b>;
         }
 
-        @Bean MyService service() {
-            return mock(MyService.class);
+        <b>@Bean</b> MyService service() {
+            return <b>mock(MyService.class)</b>;
         }
     }
 }
 </pre>
-<p>Sure you can imagine coresponding XMLconfiguration file.</p>
 </article>
   </slide>
 
-
   <slide>
     <hgroup>
-      <h2>Mock Data</h2>
+      <h2>Mock Behaviour</h2>
     </hgroup>
     <article class="smaller">
       <pre class="prettyprint" data-lang="java">
@@ -204,6 +219,42 @@ public class MyControllerTest {
 </article>
   </slide>
 
+  <slide>
+    <hgroup>
+      <h2>How to</h2>
+    </hgroup>
+    <article class="smaller">
+      <h4>prevent component scan clash</h4>
+      <pre class="prettyprint" data-lang="java">
+<b>@ActiveProfiles("unit")</b>
+public class MyControllerTest {
+
+    @Configuration
+    <b>@Profile("unit")</b>
+    static class Config {
+    }
+}
+</pre>
+
+      <h4>customize Spring MVC configuration</h4>
+      <pre class="prettyprint" data-lang="java">
+    @Configuration
+    @EnableWebMvc
+    static class Config <b>extends WebMvcConfigurerAdapter</b> {
+
+        @Override
+        public void <b>addInterceptors</b>(InterceptorRegistry registry) {
+            super.addInterceptors(registry);
+        }
+
+        @Override
+        public void <b>addArgumentResolvers</b>(List<HandlerMethodArgumentResolver> argumentResolvers) {
+            super.addArgumentResolvers(argumentResolvers);
+        }
+    }
+</pre>
+</article>
+  </slide>
 
   <slide>
     <hgroup>
@@ -213,13 +264,7 @@ public class MyControllerTest {
       <ul>
         <li><a href="http://martiner.github.io/spring-mvc-test/">this slides</a></li>
         <li><a href="https://github.com/martiner/spring-mvc-test">example source code</a></li>
-        <li><a href=""></a></li>
-        <li><a href=""></a></li>
-        <li>Pressing 'p' toggles speaker notes (if they're on the current slide)</li>
-        <li>Pressing 'f' toggles fullscreen viewing</li>
-        <li>Pressing 'w' toggles widescreen</li>
-        <li>Pressing 'o' toggles overview mode</li>
-        <li>Pressing 'ESC' toggles off these goodies</li>
+        <li><a href="http://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/testing.html#spring-mvc-test-framework">Spring MVC Test Framework documentation</a></li>
       </ul>
     </article>
   </slide>
